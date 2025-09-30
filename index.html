@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stable Quiz Pro</title>
+<style>
+  /* ===== CSS ===== */
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: linear-gradient(to bottom, #f0f4f8, #d0e7ff);
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    background: url('stable-logo.png') no-repeat center center;
+    background-size: 250px;
+    opacity: 0.1;
+    top:0; left:0; bottom:0; right:0;
+    position: absolute;
+    z-index: 0;
+  }
+
+  .quiz-container {
+    max-width: 600px;
+    margin: 20px;
+    padding: 30px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 1;
+  }
+
+  h1 {
+    margin-bottom: 20px;
+  }
+
+  .option-btn {
+    display: block;
+    margin: 12px auto;
+    padding: 12px 20px;
+    width: 70%;
+    border-radius: 10px;
+    cursor: pointer;
+    background: linear-gradient(45deg,#2196f3,#21cbf3);
+    color: white;
+    font-size: 16px;
+    border: none;
+    transition: transform 0.2s, background 0.3s;
+  }
+
+  .option-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .option-btn.correct { background-color: #4caf50 !important; }
+  .option-btn.wrong { background-color: #f44336 !important; }
+
+  #next-btn {
+    display: none;
+    margin-top: 20px;
+    padding: 12px 25px;
+    border-radius: 10px;
+    background: linear-gradient(45deg,#ff9800,#ffc107);
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: white;
+    transition: transform 0.3s;
+  }
+
+  #next-btn:hover {
+    transform: scale(1.1);
+  }
+
+  /* Confetti canvas */
+  #confetti-canvas {
+    position: fixed;
+    pointer-events: none;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="quiz-container">
+  <h1>Stable Quiz Pro</h1>
+  <div id="question-container">
+    <p id="question"></p>
+    <div id="options"></div>
+  </div>
+  <button id="next-btn">Next</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+  // ===== JS =====
+  const questions = [
+    {
+      question: "What is Stable?",
+      options: ["A generic smart contract platform", "A Layer-1 blockchain optimized for USDT", "A centralized exchange", "A crypto wallet"],
+      answer: 1
+    },
+    {
+      question: "Which token is native to Stable?",
+      options: ["STB", "USDT", "ETH", "BTC"],
+      answer: 0
+    },
+    {
+      question: "Stable is optimized for?",
+      options: ["Gaming", "USDT", "NFTs", "DeFi only"],
+      answer: 1
+    }
+  ];
+
+  let currentQuestion = 0;
+  let score = 0;
+
+  const questionEl = document.getElementById('question');
+  const optionsEl = document.getElementById('options');
+  const nextBtn = document.getElementById('next-btn');
+
+  function loadQuestion() {
+    const q = questions[currentQuestion];
+    questionEl.textContent = q.question;
+    optionsEl.innerHTML = '';
+
+    q.options.forEach((option, index) => {
+      const btn = document.createElement('button');
+      btn.textContent = option;
+      btn.classList.add('option-btn');
+      btn.onclick = () => checkAnswer(index, btn);
+      optionsEl.appendChild(btn);
+    });
+
+    nextBtn.style.display = 'none';
+  }
+
+  function checkAnswer(selected, btn) {
+    const correct = questions[currentQuestion].answer;
+    if(selected === correct) {
+      btn.classList.add('correct');
+      score++;
+    } else {
+      btn.classList.add('wrong');
+      // highlight correct answer
+      const buttons = document.querySelectorAll('.option-btn');
+      buttons[correct].classList.add('correct');
+    }
+    document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+    nextBtn.style.display = 'inline-block';
+  }
+
+  nextBtn.onclick = () => {
+    currentQuestion++;
+    if(currentQuestion < questions.length) {
+      loadQuestion();
+    } else {
+      showFinalMessage();
+    }
+  }
+
+  function showFinalMessage() {
+    questionEl.textContent = `🎉 Congratulations! You scored ${score}/${questions.length}`;
+    optionsEl.innerHTML = '';
+    nextBtn.style.display = 'none';
+    launchConfetti();
+  }
+
+  function launchConfetti() {
+    const duration = 3 * 1000;
+    const end = Date.now() + duration;
+
+    (function frame() {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 }
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 }
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    }());
+  }
+
+  loadQuestion();
+</script>
+</body>
+</html>
